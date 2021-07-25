@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  traefik:
+    # The official v2 Traefik docker image
+    image: traefik:v2.4
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The HTTPS port
+      - "443:443"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.yml:/traefik.yml
+      - ./config:/config
+      # Mount the volume to store the certificates
+      - traefik-public-certificates:/certificates
+    environment:
+      CLOUDFLARE_EMAIL_FILE: /CLOUDFLARE_EMAIL
+      CLOUDFLARE_API_KEY_FILE: /run/secrets/CLOUDFLARE_API_KEY
+    secrets:
+      - CLOUDFLARE_API_KEY
+    configs:
+      - CLOUDFLARE_EMAIL
+    deploy:
+      placement:
+        constraints:
+          # Make the traefik service run only on the node with this label
+          # as the node with it has the volume for the certificates
+          - node.labels.traefik-public.traefik-public-certificates == true
+      labels:
+        # Enable Traefik for this service, to make it available in the public network
+        - traefik.enable=true
+        # Use the traefik-public network (declared below)
+        - traefik.docker.network=traefik-public
+        # Use the custom label "traefik.constraint-label=traefik-public"
+        # This public Traefik will only use services with this label
+        # That way you can add other internal Traefik instances per stack if needed
+        - "traefik.constraint-label=traefik-public"
+        # traefik-http set up only to use the middleware to redirect to https
+        # Uses the environment variable DOMAIN
+        - traefik.http.routers.traefik-public-http.rule=Host(`traefik.20dots.com`)
+        - traefik.http.routers.traefik-public-http.entrypoints=http
+        - traefik.http.routers.traefik-public-http.middlewares=https-redirect@file
+        #
+        - "traefik.http.routers.traefik-public.rule=Host(`traefik.20dots.com`)"
+        - traefik.http.routers.traefik-public.entrypoints=https
+        - traefik.http.routers.traefik-public.tls=true
+        - "traefik.http.routers.traefik-public.tls.certresolver=dns-cloudflare"
+        # Use the special Traefik service api@internal with the web UI/Dashboard
+        - "traefik.http.routers.traefik-public.service=api@internal"
+        - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$apr1$$oXTPlfei$$Dia/vKSxNXmk71U4nI.f7."
+        - "traefik.http.routers.traefik-public.middlewares=traefik-auth"
+        # Define the port inside of the Docker service to use
+        - "traefik.http.services.traefik-public.loadbalancer.server.port=8080"
+    networks:
+      # Use the public network created to be shared between Traefik and
+      # any other service that needs to be publicly available with HTTPS
+      - traefik-public
+
+volumes:
+  # Create a volume to store the certificates, there is a constraint to make sure
+  # Traefik is always deployed to the same Docker node with the same volume containing
+  # the HTTPS certificates
+  traefik-public-certificates:
+
+networks:
+  # Use the previously created public network "traefik-public", shared with other
+  # services that need to be publicly available via this Traefik
+  traefik-public:
+    external: true
+
+secrets:
+  CLOUDFLARE_API_KEY:
+    external: true
+
+configs:
+  CLOUDFLARE_EMAIL:
+    external: true
