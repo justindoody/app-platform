@@ -75,12 +75,29 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
-        name: Deploy traefik service to swarm node
-        uses: sagebind/docker-swarm-deploy-action@v2
-        env:
-          BA_HASHED_PASSWORD: ${{ secrets.BA_HASHED_PASSWORD }}
+        name: SSH Agent
+        uses: webfactory/ssh-agent@v0.5.0
         with:
-          remote_host: ssh://${{ env.DEPLOY_TARGET_USER }}@${{ env.DEPLOY_TARGET_URL }}
-          ssh_private_key: ${{ secrets.DOCKER_SSH_PRIVATE_KEY }}
-          ssh_public_key: ${{ secrets.DOCKER_SSH_PUBLIC_KEY }}
-          args: stack deploy --with-registry-auth --compose-file ./docker/traefik-stack.yml traefik
+          ssh-private-key: ${{ secrets.DOCKER_SSH_PRIVATE_KEY }}
+      -
+        name: Setup SSH Known Hosts
+        run: |
+          mkdir -p -m 0700 ~/.ssh
+
+          echo "Add domain to known hosts"
+          ssh-keyscan -t rsa -p 22 ${{ env.DEPLOY_TARGET_URL }} > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      -
+        name: Add docker production context
+        run: |
+          docker context create production \
+                 --docker host=ssh://app@${{ env.DEPLOY_TARGET_URL }}
+      -
+        name: Deploy application services to swarm
+        run: |
+          docker --context production \
+                 stack deploy \
+                 --prune \
+                 --with-registry-auth \
+                 --compose-file ./docker/traefik-stack.yml \
+                 traefik
