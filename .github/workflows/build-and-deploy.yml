@@ -94,6 +94,8 @@ jobs:
                  --docker host=ssh://${{ env.DEPLOY_TARGET_USER }}@${{ env.DEPLOY_TARGET_URL }}
       -
         name: Deploy application services to swarm
+        env:
+          BA_HASHED_PASSWORD: ${{ secrets.BA_HASHED_PASSWORD }}
         run: |
           docker --context production \
                  stack deploy \
