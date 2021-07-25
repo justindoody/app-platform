@@ -16,10 +16,9 @@ services:
     environment:
       CLOUDFLARE_EMAIL_FILE: /CLOUDFLARE_EMAIL
       CLOUDFLARE_API_KEY_FILE: /run/secrets/CLOUDFLARE_API_KEY
-      BA_HASHED_PASSWORD: /run/secrets/BA_HASHED_PASSWORD
     secrets:
       - CLOUDFLARE_API_KEY
-      - BA_HASHED_PASSWORD
+      - TRAEFIK_BASIC_AUTH_USERS
     configs:
       - CLOUDFLARE_EMAIL
     deploy:
@@ -49,7 +48,7 @@ services:
         - "traefik.http.routers.traefik-public.tls.certresolver=dns-cloudflare"
         # Use the special Traefik service api@internal with the web UI/Dashboard
         - "traefik.http.routers.traefik-public.service=api@internal"
-        - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:${BA_HASHED_PASSWORD?Variable not set}"
+        - "traefik.http.middlewares.traefik-auth.basicauth.usersfile=/run/secrets/TRAEFIK_BASIC_AUTH_USERS"
         - "traefik.http.routers.traefik-public.middlewares=traefik-auth"
         # Define the port inside of the Docker service to use
         - "traefik.http.services.traefik-public.loadbalancer.server.port=8080"
@@ -73,7 +72,7 @@ networks:
 secrets:
   CLOUDFLARE_API_KEY:
     external: true
-  BA_HASHED_PASSWORD:
+  TRAEFIK_BASIC_AUTH_USERS:
     external: true
 
 configs:
