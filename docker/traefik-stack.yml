@@ -2,8 +2,7 @@ version: '3.8'
 
 services:
   traefik:
-    # The official v2 Traefik docker image
-    image: traefik:v2.4
+    image: ghcr.io/justindoody/app-platform-traefik:${GITHUB_SHA}
     ports:
       # The HTTP port
       - "80:80"
@@ -12,15 +11,15 @@ services:
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./traefik.yml:/traefik.yml
-      - ./config:/config
       # Mount the volume to store the certificates
       - traefik-public-certificates:/certificates
     environment:
       CLOUDFLARE_EMAIL_FILE: /CLOUDFLARE_EMAIL
       CLOUDFLARE_API_KEY_FILE: /run/secrets/CLOUDFLARE_API_KEY
+      BA_HASHED_PASSWORD: /run/secrets/BA_HASHED_PASSWORD
     secrets:
       - CLOUDFLARE_API_KEY
+      - BA_HASHED_PASSWORD
     configs:
       - CLOUDFLARE_EMAIL
     deploy:
@@ -50,7 +49,7 @@ services:
         - "traefik.http.routers.traefik-public.tls.certresolver=dns-cloudflare"
         # Use the special Traefik service api@internal with the web UI/Dashboard
         - "traefik.http.routers.traefik-public.service=api@internal"
-        - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$apr1$$oXTPlfei$$Dia/vKSxNXmk71U4nI.f7."
+        - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:${BA_HASHED_PASSWORD?Variable not set}"
         - "traefik.http.routers.traefik-public.middlewares=traefik-auth"
         # Define the port inside of the Docker service to use
         - "traefik.http.services.traefik-public.loadbalancer.server.port=8080"
@@ -73,6 +72,8 @@ networks:
 
 secrets:
   CLOUDFLARE_API_KEY:
+    external: true
+  BA_HASHED_PASSWORD:
     external: true
 
 configs:

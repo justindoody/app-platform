@@ -1,3 +1,4 @@
 .env
 ansible/hosts
 ansible/vars/default.yml
+.DS_STORE
