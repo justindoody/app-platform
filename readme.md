@@ -14,6 +14,6 @@ echo <email> | docker config create CLOUDFLARE_EMAIL -
 
 ```sh
 docker stack deploy \
-       -c docker-traefik.yml \
-       traefik
+-c docker-traefik.yml \
+traefik
 ```

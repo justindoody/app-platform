@@ -17,6 +17,7 @@ providers:
     # Do not expose all Docker services, only the ones explicitly exposed
     exposedByDefault: false
     swarmMode: true
+    network: traefik-public
   file:
     filename: "/config/file-provider.yml"
 

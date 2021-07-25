@@ -1,4 +1,5 @@
 # https-redirect middleware to redirect HTTP to HTTPS
+# Usage: <router>.middlewares=https-redirect@file
 http:
   middlewares:
     https-redirect:
