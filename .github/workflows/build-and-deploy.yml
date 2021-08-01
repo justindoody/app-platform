@@ -8,7 +8,7 @@ on:
     - 'terraform/**'
 
 env:
-  DEPLOY_TARGET_URL: blog.20dots.com
+  DEPLOY_TARGET_URL: 144.126.251.68
   DEPLOY_TARGET_USER: vita
 
 jobs:
