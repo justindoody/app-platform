@@ -1,3 +1,7 @@
+# Overview
+
+...
+
 ## Deploying
 
 ### Secrets & Config
@@ -17,3 +21,11 @@ docker stack deploy \
 -c docker-traefik.yml \
 traefik
 ```
+
+### Traefik Authentication
+
+Traefik is using basic auth to authenticate relying on the file provider which is reading from a docker secret `TRAEFIK_BASIC_AUTH_USERS`.
+
+User/pass combos generated via `echo $(htpasswd -nb user password)`.
+
+See [traefik docs for more](https://doc.traefik.io/traefik/middlewares/basicauth/#usersfile).
