@@ -1,4 +1,4 @@
-The following are needed in `./templates/default.yml`:
+The following are needed in `./vars/default.yml`:
 ```sh
 ---
 user: <user>
@@ -15,3 +15,4 @@ XXX.XXX.X.XXX ansible_ssh_private_key_file=~/.ssh/<private-key>
 Use the following to run the playbooks:
 `ansible-playbook initial-playbook.yml --inventory-file=./hosts -u root`
 `ansible-playbook docker-playbook.yml --inventory-file=./hosts -u <user>`
+`ansible-playbook apt-upgrade-playbook.yml --inventory-file=./hosts -u <user>`
