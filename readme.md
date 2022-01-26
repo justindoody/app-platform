@@ -1,6 +1,6 @@
 # Overview
 
-...
+Provides basic traefik setup within a Docker image for running various apps and Ansible scripts for configuring docker swarm.
 
 ## Deploying
 
