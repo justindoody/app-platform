@@ -1,4 +1,4 @@
-FROM traefik:v2.4
+FROM traefik:v2.5
 
 COPY ./docker/traefik.yml /traefik.yml
 COPY ./docker/config /config
